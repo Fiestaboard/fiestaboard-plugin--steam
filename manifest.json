@@ -1,0 +1,408 @@
+{
+  "id": "steam",
+  "name": "Steam",
+  "version": "1.0.0",
+  "description": "Show Steam activity, friends online, playtime and achievement progress. Add a separate instance for each person and combine them on household pages.",
+  "author": "FiestaBoard",
+  "icon": "gamepad-2",
+  "category": "entertainment",
+  "documentation": "README.md",
+  "fiestaboard_version": ">=10.0.0",
+  "min_refresh_seconds": 30,
+  "settings_schema": {
+    "type": "object",
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "title": "Enable Steam",
+        "default": false
+      },
+      "api_key": {
+        "type": "string",
+        "title": "Steam Web API Key",
+        "description": "Your personal key from steamcommunity.com/dev/apikey. Use localhost for a local installation. Leave blank only if STEAM_API_KEY is set on the server.",
+        "ui:widget": "password"
+      },
+      "profile": {
+        "type": "string",
+        "title": "Steam Profile",
+        "description": "Your profile or anyone else whose activity is visible: paste a steamcommunity.com/id/NAME or /profiles/ID URL, or a 17-digit Steam ID."
+      },
+      "display_name": {
+        "type": "string",
+        "title": "Display Name (optional)",
+        "description": "Friendly label for this profile, such as Jeff or Husband. Blank uses the Steam name.",
+        "maxLength": 80
+      },
+      "display_mode": {
+        "type": "string",
+        "title": "Display Mode",
+        "enum": [
+          "now_playing",
+          "friends",
+          "achievements"
+        ],
+        "enumNames": [
+          "Now Playing",
+          "Friends",
+          "Achievement Chase"
+        ],
+        "default": "now_playing",
+        "description": "Choose the ready-made board layout. All variables remain available in every mode."
+      },
+      "game_id": {
+        "type": "integer",
+        "title": "Featured Game ID",
+        "minimum": 0,
+        "maximum": 4294967295,
+        "default": 0,
+        "description": "0 selects the current game, then most recent game. To track a specific game, use the number after /app/ in its Steam store URL. This controls playtime and achievements."
+      },
+      "favorite_friends": {
+        "type": "string",
+        "title": "Favorite Friends (optional)",
+        "description": "Comma-separated 17-digit Steam IDs. Blank uses this profile\u2019s visible friends list. Counts cover only favorites when set; profiles can be added even when the friends list is private."
+      },
+      "refresh_seconds": {
+        "type": "integer",
+        "title": "Activity Refresh (seconds)",
+        "default": 60,
+        "minimum": 30,
+        "maximum": 3600,
+        "description": "Presence refresh. Game statistics refresh every 5 minutes; the friends list every 15 minutes."
+      }
+    },
+    "required": [
+      "profile"
+    ]
+  },
+  "env_vars": [
+    {
+      "name": "STEAM_API_KEY",
+      "required": false,
+      "description": "Personal Steam Web API key, used by instances whose API Key setting is blank."
+    }
+  ],
+  "variables": {
+    "groups": {
+      "profile": {
+        "label": "Profile"
+      },
+      "activity": {
+        "label": "Activity"
+      },
+      "featured_game": {
+        "label": "Featured game"
+      },
+      "library": {
+        "label": "Library"
+      },
+      "friends": {
+        "label": "Friends"
+      },
+      "achievements": {
+        "label": "Achievements"
+      },
+      "display": {
+        "label": "Display"
+      }
+    },
+    "simple": {
+      "player_name": {
+        "type": "string",
+        "description": "Selected player name",
+        "group": "profile"
+      },
+      "steam_id": {
+        "type": "string",
+        "description": "Selected player Steam ID",
+        "group": "profile"
+      },
+      "profile_url": {
+        "type": "string",
+        "description": "Steam Community profile URL",
+        "group": "profile"
+      },
+      "status": {
+        "type": "string",
+        "description": "Visible Steam status",
+        "group": "activity"
+      },
+      "is_playing": {
+        "type": "boolean",
+        "description": "Whether Steam exposes an in-game activity",
+        "group": "activity"
+      },
+      "current_game": {
+        "type": "string",
+        "description": "Game currently playing, blank if not visible",
+        "group": "activity"
+      },
+      "current_game_id": {
+        "type": "number",
+        "description": "Current Steam app ID, blank if unavailable",
+        "group": "activity"
+      },
+      "game_id": {
+        "type": "number",
+        "description": "Selected, current, or most recent game ID",
+        "group": "featured_game"
+      },
+      "game_name": {
+        "type": "string",
+        "description": "Featured game title",
+        "group": "featured_game"
+      },
+      "playtime_hours": {
+        "type": "number",
+        "description": "Featured game lifetime hours; blank if hidden",
+        "group": "featured_game"
+      },
+      "game_recent_hours": {
+        "type": "number",
+        "description": "Featured game hours in the last two weeks; blank if unavailable",
+        "group": "featured_game"
+      },
+      "recent_hours": {
+        "type": "number",
+        "description": "Hours across recently played games in the last two weeks",
+        "group": "library"
+      },
+      "library_count": {
+        "type": "number",
+        "description": "Visible owned-game count, not family library size",
+        "group": "library"
+      },
+      "playtime_status": {
+        "type": "string",
+        "description": "Availability of featured-game playtime",
+        "group": "library"
+      },
+      "recent_status": {
+        "type": "string",
+        "description": "Availability of recent games and playtime",
+        "group": "library"
+      },
+      "friends_online": {
+        "type": "number",
+        "description": "Online friends including those playing; blank if unavailable",
+        "group": "friends"
+      },
+      "friends_playing": {
+        "type": "number",
+        "description": "Friends currently in game; blank if unavailable",
+        "group": "friends"
+      },
+      "friends_total": {
+        "type": "number",
+        "description": "Number of friends in selected scope",
+        "group": "friends"
+      },
+      "friends_available": {
+        "type": "boolean",
+        "description": "Whether friend counts are complete",
+        "group": "friends"
+      },
+      "friends_status": {
+        "type": "string",
+        "description": "Friends data availability or explanation",
+        "group": "friends"
+      },
+      "friends_scope": {
+        "type": "string",
+        "description": "All friends or Favorites",
+        "group": "friends"
+      },
+      "achievements_unlocked": {
+        "type": "number",
+        "description": "Featured game unlocked achievement count",
+        "group": "achievements"
+      },
+      "achievements_total": {
+        "type": "number",
+        "description": "Featured game achievement count",
+        "group": "achievements"
+      },
+      "achievements_remaining": {
+        "type": "number",
+        "description": "Achievements still locked",
+        "group": "achievements"
+      },
+      "achievement_percent": {
+        "type": "number",
+        "description": "Completion percentage; blank if unknown or no achievements",
+        "group": "achievements"
+      },
+      "achievement_summary": {
+        "type": "string",
+        "description": "Ready-to-display achievement count or status",
+        "group": "achievements"
+      },
+      "achievements_available": {
+        "type": "boolean",
+        "description": "Whether achievement counts are available",
+        "group": "achievements"
+      },
+      "achievements_status": {
+        "type": "string",
+        "description": "Achievement data availability or explanation",
+        "group": "achievements"
+      },
+      "latest_achievement": {
+        "type": "string",
+        "description": "Latest unlocked achievement in the featured game",
+        "group": "achievements"
+      },
+      "latest_unlock_time": {
+        "type": "number",
+        "description": "Latest unlock Unix timestamp, 0 if Steam did not record it",
+        "group": "achievements"
+      },
+      "line_1": {
+        "type": "string",
+        "description": "Row 1 of the selected display mode, adapted to the current board",
+        "group": "display"
+      },
+      "line_2": {
+        "type": "string",
+        "description": "Row 2 of the selected display mode, adapted to the current board",
+        "group": "display"
+      },
+      "line_3": {
+        "type": "string",
+        "description": "Row 3 of the selected display mode, adapted to the current board",
+        "group": "display"
+      },
+      "line_4": {
+        "type": "string",
+        "description": "Row 4 of the selected display mode, adapted to the current board",
+        "group": "display"
+      },
+      "line_5": {
+        "type": "string",
+        "description": "Row 5 of the selected display mode, adapted to the current board",
+        "group": "display"
+      },
+      "line_6": {
+        "type": "string",
+        "description": "Row 6 of the selected display mode, adapted to the current board",
+        "group": "display"
+      }
+    },
+    "arrays": {
+      "friends": {
+        "label_field": "name",
+        "item_fields": [
+          "steam_id",
+          "name",
+          "status",
+          "game",
+          "is_online",
+          "is_playing"
+        ]
+      },
+      "recent_games": {
+        "label_field": "name",
+        "item_fields": [
+          "appid",
+          "name",
+          "recent_hours",
+          "playtime_hours"
+        ]
+      }
+    }
+  },
+  "teaser": "FRIENDS ONLINE",
+  "previews": [
+    {
+      "device_type": "flagship",
+      "rows": [
+        "         JEFF",
+        "     NOW PLAYING",
+        "       PORTAL 2",
+        "   10 HOURS PLAYED",
+        "   2 OF 3 UNLOCKED",
+        "   2 FRIENDS ONLINE"
+      ]
+    },
+    {
+      "device_type": "note",
+      "rows": [
+        "     HUSBAND",
+        "      HADES",
+        "   NOW PLAYING"
+      ]
+    },
+    {
+      "device_type": "note_array",
+      "notes_wide": 2,
+      "notes_tall": 1,
+      "rows": [
+        "             JEFF",
+        "           PORTAL 2",
+        "          NOW PLAYING"
+      ]
+    }
+  ],
+  "demo": {
+    "flagship": {
+      "name": "Steam (Flagship)",
+      "template": [
+        "{{steam.line_1}}",
+        "{{steam.line_2}}",
+        "{{steam.line_3}}",
+        "{{steam.line_4}}",
+        "{{steam.line_5}}",
+        "{{steam.line_6}}"
+      ],
+      "line_metadata": [
+        {
+          "alignment": "center",
+          "wrap": false
+        },
+        {
+          "alignment": "center",
+          "wrap": false
+        },
+        {
+          "alignment": "center",
+          "wrap": false
+        },
+        {
+          "alignment": "center",
+          "wrap": false
+        },
+        {
+          "alignment": "center",
+          "wrap": false
+        },
+        {
+          "alignment": "center",
+          "wrap": false
+        }
+      ]
+    },
+    "note": {
+      "name": "Steam (Note)",
+      "template": [
+        "{{steam.line_1}}",
+        "{{steam.line_2}}",
+        "{{steam.line_3}}"
+      ],
+      "line_metadata": [
+        {
+          "alignment": "center",
+          "wrap": false
+        },
+        {
+          "alignment": "center",
+          "wrap": false
+        },
+        {
+          "alignment": "center",
+          "wrap": false
+        }
+      ]
+    }
+  }
+}

@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CORE = Path(os.environ.get("FIESTABOARD_CORE", ROOT.parent / "FiestaBoard"))
 sys.path.insert(0, str(CORE))
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "tests"))
 
 
 def load_plugin():
