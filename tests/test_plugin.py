@@ -40,6 +40,8 @@ def test_two_profiles_have_equal_independent_data(module, transport):
     assert a.data["achievement_percent"] == 67
     assert b.data["achievement_percent"] == 33
     assert a.data["playtime_hours"] == 10
+    assert a.data["playtime_available"] is True
+    assert a.data["recent_available"] is True
     assert b.data["playtime_hours"] == 20
     assert a.data["recent_hours"] == 3
     assert a.data["latest_achievement"] == "You Monster"
@@ -99,6 +101,8 @@ def test_private_stats_and_missing_playtime_are_unknown(module, transport):
     assert data["achievement_percent"] is None
     assert data["playtime_hours"] is None
     assert data["recent_hours"] is None
+    assert data["playtime_available"] is False
+    assert data["recent_available"] is False
     assert "secret" not in str(data)
 
 
@@ -170,6 +174,39 @@ def test_cache_reused_across_board_shapes(module, transport):
     assert len(a.formatted_lines) == 6
     assert len(b.formatted_lines) == 3
     assert all(len(x) == 15 for x in b.formatted_lines)
+
+
+def test_presence_cache_expires_even_after_another_board_just_rendered(module, transport, monkeypatch):
+    from src.devices import BoardContext
+    now = [0]
+    monkeypatch.setattr(module.steam_api.time, "monotonic", lambda: now[0])
+    p = plugin(module)
+    flagship = BoardContext("flagship", rows=6, cols=22)
+    note = BoardContext("note", rows=3, cols=15)
+    assert p.get_data(flagship).data["is_playing"]
+    now[0] = 59
+    assert p.get_data(note).data["is_playing"]
+    transport.players[ME].pop("gameid")
+    transport.players[ME].pop("gameextrainfo")
+    now[0] = 61
+    assert p.get_data(note).data["is_playing"] is False
+
+
+def test_latest_unlock_requires_a_known_timestamp(module, transport):
+    transport.overrides["GetPlayerAchievements"] = (200, {"playerstats": {"success": True, "achievements": [{"apiname": "A", "achieved": 1, "unlocktime": 0}, {"apiname": "B", "achieved": 0}, {"apiname": "C", "achieved": 0}]}})
+    data = plugin(module).fetch_data().data
+    assert data["achievements_unlocked"] == 1
+    assert data["latest_achievement"] == ""
+    assert data["latest_unlock_time"] is None
+
+
+@pytest.mark.parametrize("achievements", [[{"apiname": "A", "achieved": 1}], [{"apiname": "A", "achieved": 1}, {"apiname": "A", "achieved": 1}, {"apiname": "C", "achieved": 0}]])
+def test_incomplete_or_duplicate_achievements_never_claim_completion(module, transport, achievements):
+    transport.overrides["GetPlayerAchievements"] = (200, {"playerstats": {"success": True, "achievements": achievements}})
+    data = plugin(module).fetch_data().data
+    assert data["achievements_available"] is False
+    assert data["achievement_percent"] is None
+    assert "incomplete" in data["achievements_status"]
 
 
 @pytest.mark.parametrize("mode", ["now_playing", "friends", "achievements"])

@@ -1,0 +1,22 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Fiestaboard/FiestaBoard
+          path: fiestaboard-core
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install core and test dependencies
+        run: pip install -r fiestaboard-core/requirements.txt -r requirements-dev.txt
+      - name: Test plugin and validate manifest against core
+        env:
+          FIESTABOARD_CORE: ${{ github.workspace }}/fiestaboard-core
+        run: pytest --cov=steam_plugin --cov=steam_api --cov-report=term-missing --cov-fail-under=80

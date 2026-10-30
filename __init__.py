@@ -90,17 +90,25 @@ def achievement_data(client, sid, appid):
     achievements = records(result.get("achievements"))
     if any(a.get("achieved") not in (0, 1) or not isinstance(a.get("apiname"), str) for a in achievements):
         raise SteamError("Steam returned incomplete achievement data.")
+    identifiers = {a["apiname"] for a in achievements}
+    if len(identifiers) != len(achievements):
+        raise SteamError("Steam returned incomplete achievement data (duplicate entries).")
     unlocked = [a for a in achievements if a["achieved"] == 1]
-    latest = max(unlocked, key=lambda a: number(a.get("unlocktime")) or 0, default={})
+    dated = [a for a in unlocked if (number(a.get("unlocktime")) or 0) > 0]
+    latest = max(dated, key=lambda a: a["unlocktime"], default={})
     latest_name = clean(latest.get("name"))
     schema_status = ""
+    schema_ids = None
     try:
         schema = client.get("ISteamUserStats", "GetSchemaForGame", 2, {"appid": appid, "l": "english"}, 86400)
         definitions = records(schema["game"].get("availableGameStats", {}).get("achievements", []))
         names = {a["name"]: clean(a.get("displayName")) for a in definitions}
+        schema_ids = set(names)
         latest_name = names.get(latest.get("apiname"), latest_name)
     except (SteamError, KeyError, TypeError, AttributeError):
         schema_status = "Achievement names unavailable; counts are available."
+    if schema_ids is not None and schema_ids != identifiers:
+        raise SteamError("Steam returned incomplete achievement data. Counts will refresh after the cache expires.")
     total = len(achievements)
     return {"game_name": clean(result.get("gameName")), "achievements_available": True,
             "achievements_unlocked": len(unlocked), "achievements_total": total,
@@ -236,6 +244,8 @@ class SteamPlugin(PluginBase):
                         friends_online=sum(p["is_online"] for p in data["friends"]), friends_playing=sum(p["is_playing"] for p in data["friends"]))
         except (SteamError, KeyError, TypeError, AttributeError) as exc:
             data["friends_status"] = str(exc) if isinstance(exc, SteamError) else "Friends unavailable."
+        data["playtime_available"] = data["playtime_hours"] is not None
+        data["recent_available"] = data["recent_hours"] is not None
         return data
 
 

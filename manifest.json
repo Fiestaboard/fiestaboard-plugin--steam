@@ -9,6 +9,7 @@
   "documentation": "README.md",
   "fiestaboard_version": ">=10.0.0",
   "min_refresh_seconds": 30,
+  "live_data": true,
   "settings_schema": {
     "type": "object",
     "properties": {
@@ -56,7 +57,7 @@
         "minimum": 0,
         "maximum": 4294967295,
         "default": 0,
-        "description": "0 selects the current game, then most recent game. To track a specific game, use the number after /app/ in its Steam store URL. This controls playtime and achievements."
+        "description": "0 selects the current game, then a recent game. To track a specific game, use the number after /app/ in its Steam store URL. This controls playtime and achievements."
       },
       "favorite_friends": {
         "type": "string",
@@ -135,17 +136,17 @@
       },
       "current_game": {
         "type": "string",
-        "description": "Game currently playing, blank if not visible",
+        "description": "Game currently playing, unavailable if not visible",
         "group": "activity"
       },
       "current_game_id": {
         "type": "number",
-        "description": "Current Steam app ID, blank if unavailable",
+        "description": "Current Steam app ID, unavailable if unavailable",
         "group": "activity"
       },
       "game_id": {
         "type": "number",
-        "description": "Selected, current, or most recent game ID",
+        "description": "Selected, current, or a recent game ID",
         "group": "featured_game"
       },
       "game_name": {
@@ -155,12 +156,12 @@
       },
       "playtime_hours": {
         "type": "number",
-        "description": "Featured game lifetime hours; blank if hidden",
+        "description": "Featured game lifetime hours; unavailable if hidden",
         "group": "featured_game"
       },
       "game_recent_hours": {
         "type": "number",
-        "description": "Featured game hours in the last two weeks; blank if unavailable",
+        "description": "Featured game hours in the last two weeks; unavailable if unavailable",
         "group": "featured_game"
       },
       "recent_hours": {
@@ -185,12 +186,12 @@
       },
       "friends_online": {
         "type": "number",
-        "description": "Online friends including those playing; blank if unavailable",
+        "description": "Online friends including those playing; unavailable if unavailable",
         "group": "friends"
       },
       "friends_playing": {
         "type": "number",
-        "description": "Friends currently in game; blank if unavailable",
+        "description": "Friends currently in game; unavailable if unavailable",
         "group": "friends"
       },
       "friends_total": {
@@ -230,7 +231,7 @@
       },
       "achievement_percent": {
         "type": "number",
-        "description": "Completion percentage; blank if unknown or no achievements",
+        "description": "Completion percentage; unavailable if unknown or no achievements",
         "group": "achievements"
       },
       "achievement_summary": {
@@ -255,7 +256,7 @@
       },
       "latest_unlock_time": {
         "type": "number",
-        "description": "Latest unlock Unix timestamp, 0 if Steam did not record it",
+        "description": "Latest known unlock Unix timestamp; unavailable if no positive unlock time exists",
         "group": "achievements"
       },
       "line_1": {
@@ -287,6 +288,16 @@
         "type": "string",
         "description": "Row 6 of the selected display mode, adapted to the current board",
         "group": "display"
+      },
+      "playtime_available": {
+        "type": "boolean",
+        "group": "featured_game",
+        "description": "Whether featured-game lifetime hours are visible; use for a template fallback"
+      },
+      "recent_available": {
+        "type": "boolean",
+        "group": "library",
+        "description": "Whether total two-week hours are visible; use for a template fallback"
       }
     },
     "arrays": {

@@ -29,12 +29,24 @@ def fixture_get(url, **kwargs):
 
 requests.get = fixture_get
 
-from src.api_server import app
+from src.api_server import app as core_app
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 web = Path("/app/web/build/client")
+
+
+@asynccontextmanager
+async def lifespan(app):
+    async with core_app.router.lifespan_context(core_app):
+        yield
+
+
+app = FastAPI(lifespan=lifespan)
+app.mount("/api", core_app)
 app.mount("/assets", StaticFiles(directory=web / "assets"), name="ux-assets")
 
 
