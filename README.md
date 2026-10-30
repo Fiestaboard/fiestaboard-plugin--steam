@@ -26,7 +26,13 @@ volumes:
   - /absolute/path/to/fiestaboard-plugin--steam:/app/plugins/steam:ro
 ```
 
-Mount the **whole directory**, including `steam_api.py` and `display.py`. For a Git-based installation after you publish this repository, use FiestaBoard's custom Git plugin installer with the actual repository URL. This local deliverable has not been published or added to the public registry.
+Mount the **whole directory**, including `steam_api.py` and `display.py`. Alternatively, use FiestaBoard's custom Git plugin installer with:
+
+```text
+https://github.com/Fiestaboard/fiestaboard-plugin--steam
+```
+
+The repository is public; it has not yet been added to the curated plugin registry.
 
 ## Settings
 
@@ -100,17 +106,17 @@ The base instance uses `{{steam.FIELD}}`. Named instances use `{{steam:me.FIELD}
 | `status` | string | Visible Steam status |
 | `is_playing` | boolean | Whether Steam exposes an in-game activity |
 | `current_game` | string | Game currently playing, unavailable if not visible |
-| `current_game_id` | number | Current Steam app ID, unavailable if unavailable |
+| `current_game_id` | number | Current Steam app ID; unknown when no visible activity exists |
 | `game_id` | number | Selected, current, or a recent game ID |
 | `game_name` | string | Featured game title |
 | `playtime_hours` | number | Featured game lifetime hours; unavailable if hidden |
-| `game_recent_hours` | number | Featured game hours in the last two weeks; unavailable if unavailable |
+| `game_recent_hours` | number | Featured game hours in the last two weeks, when reported |
 | `recent_hours` | number | Hours across recently played games in the last two weeks |
 | `library_count` | number | Visible owned-game count, not family library size |
 | `playtime_status` | string | Availability of featured-game playtime |
 | `recent_status` | string | Availability of recent games and playtime |
-| `friends_online` | number | Online friends including those playing; unavailable if unavailable |
-| `friends_playing` | number | Friends currently in game; unavailable if unavailable |
+| `friends_online` | number | Online friends including those playing; unknown if counts are incomplete |
+| `friends_playing` | number | Friends currently in game; unknown if counts are incomplete |
 | `friends_total` | number | Number of friends in selected scope |
 | `friends_available` | boolean | Whether friend counts are complete |
 | `friends_status` | string | Friends data availability or explanation |

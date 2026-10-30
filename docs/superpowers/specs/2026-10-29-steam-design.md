@@ -13,7 +13,7 @@ Use the existing Python PluginBase API and named instances (`steam:me`, `steam:h
 - Now Playing, Friends, and Achievement Chase display modes.
 - Profile name, visible status/current game, recent games and playtime, selected-game playtime, achievement count/total/percentage/remaining and latest achievement.
 - Friends summary and array, optional favorite Steam IDs, playing friends first. Batch summaries in groups of at most 100.
-- A selected game ID overrides the current game; otherwise current game or most recent game is featured.
+- A selected game ID overrides the current game; otherwise the current game or a recent game is featured; Steam does not document recent-game ordering.
 - Scalar variables and arrays usable across named instances on one page; a ready-made formatted display and device demo templates.
 - Support every board geometry via board.rows/cols, including Flagship, Note, and Note Array.
 

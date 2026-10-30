@@ -50,6 +50,11 @@ app.mount("/api", core_app)
 app.mount("/assets", StaticFiles(directory=web / "assets"), name="ux-assets")
 
 
+@app.get("/__steam_fixture", include_in_schema=False)
+def fixture_marker():
+    return {"fixture": "steam-plugin-ux", "real_steam": False}
+
+
 @app.get("/{path:path}", include_in_schema=False)
 def spa(path: str):
     target = (web / path).resolve()

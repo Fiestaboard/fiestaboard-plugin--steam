@@ -29,6 +29,8 @@ Open **Integrations**, find Steam and open its settings. Set:
 
 Save and enable the integration. All variables are available regardless of display mode. The mode only controls the ready-made `line_1` through `line_6` card.
 
+The integration's **Configured** badge means the settings are present; it does not prove Steam accepted the key. Open a page preview to fetch data. A rejected key fails the profile fetch; a private optional section leaves the other fields usable.
+
 ## 4. Add your husband or another person
 
 Use Steam's **Add Instance** action to create instances labeled **`me`** and **`husband`**. Configure and enable each separately with the appropriate profile. The default `steam` instance can remain disabled when you only use named instances.
@@ -103,6 +105,7 @@ Friends are ordered by playing, then online, then name. An index follows that or
 | --- | --- |
 | API key required/rejected | Supply your personal key, remove surrounding whitespace, confirm any requested Steam Guard action. Environment fallback must exist inside the server/container. |
 | Profile not found | Use the full Community profile URL or Steam ID, not a login name or store URL. |
+| Configuration failed validation | The host may show only a generic error. Check the profile format, comma-separated favorite IDs, positive game ID (or 0), and refresh interval of 30–3600 seconds. The API response includes the detailed field error. |
 | Friends unavailable | Check friends-list visibility. You can enter specific IDs under Favorite Friends instead. |
 | `???` playtime | Check Game Details visibility and the playtime-hiding option. `???` means unavailable. |
 | Achievements unavailable | The selected game may not expose achievements, may not have initialized stats for this player, or data may be private. Try a game the person has played. |
